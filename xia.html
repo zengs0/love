@@ -1,0 +1,61 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>跳动爱心</title>
+    <style>
+     
+.heart-container {
+  position: relative;
+  width: 300px;
+  height: 150px;
+  margin: 0 auto;
+}
+#canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  animation: beatHeart 1s infinite;
+}
+@keyframes beatHeart {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+    </style>
+  </head>
+  <body>
+    <div class="heart-container">
+ 	 <canvas id="canvas"></canvas>
+	</div>
+    <script >
+	
+function drawHeart() {
+  var canvas = document.getElementById("canvas");
+  var context = canvas.getContext("2d");
+   context.beginPath();
+   // 绘制爱心的左半边
+  context.moveTo(75, 40);
+  context.bezierCurveTo(75, 37, 70, 25, 50, 25);
+  context.bezierCurveTo(20, 25, 20, 62.5, 20, 62.5);
+  context.bezierCurveTo(20, 80, 40, 102, 75, 120);
+  context.bezierCurveTo(110, 102, 130, 80, 130, 62.5);
+  context.bezierCurveTo(130, 62.5, 130, 25, 100, 25);
+  context.bezierCurveTo(85, 25, 75, 37, 75, 40);
+   // 填充红色
+  context.fillStyle = "red";
+  context.fill();
+   // 闭合路径
+  context.closePath();
+}
+ drawHeart();
+</script>
+  </body>
+</html>
