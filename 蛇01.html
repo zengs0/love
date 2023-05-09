@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>贪吃蛇</title>
+    <style>
+        #game-board {
+            width: 300px;
+            height: 300px;
+            border: 1px solid #000;
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .snake,
+        .food {
+            width: 10px;
+            height: 10px;
+            background-color: #000;
+            position: absolute;
+        }
+
+        .snake {
+            z-index: 1;
+        }
+
+        .food {
+            z-index: 2;
+        }
+
+        #controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 1rem 0;
+        }
+
+        button {
+            margin: 0.5rem;
+            padding: 0.5rem;
+            font-size: 1rem;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="game-board"></div>
+
+    <div id="controls">
+        <button id="upBtn">Up</button>
+        <button id="leftBtn">Left</button>
+        <button id="rightBtn">Right</button>
+        <button id="downBtn">Down</button>
+    </div>
+    <script>
+        var gameBoard = document.getElementById("game-board");
+        var snakeBody = [{ x: 5, y: 5 }];
+        var direction = "right";
+        var food = { x: 10, y: 10 };
+        var score = 0;
+        var timer;
+        var speed = 150;
+
+        // 初始化游戏
+        function init() {
+            // 绘制蛇和食物
+            drawSnake();
+            drawFood();
+            // 开始移动
+            startMove();
+            // 监听键盘事件
+            document.addEventListener("keydown", changeDirection);
+            // 监听触摸事件
+            document.getElementById("upBtn").addEventListener("touchstart", function () {
+                changeDirectionByTouch("up");
+            });
+            document.getElementById("leftBtn").addEventListener("touchstart", function () {
+                changeDirectionByTouch("left");
+            });
+            document.getElementById("rightBtn").addEventListener("touchstart", function () {
+                changeDirectionByTouch("right");
+            });
+            document.getElementById("downBtn").addEventListener("touchstart", function () {
+                changeDirectionByTouch("down");
+            });
+        }
+        function changeDirectionByTouch(newDirection) {
+            if (
+                (newDirection === "up" && direction !== "down") ||
+                (newDirection === "down" && direction !== "up") ||
+                (newDirection === "left" && direction !== "right") ||
+                (newDirection === "right" && direction !== "left")
+            ) {
+                direction = newDirection;
+            }
+        }
+
+        // 绘制蛇
+        function drawSnake() {
+            for (var i = 0; i < snakeBody.length; i++) {
+                var snakeNode = document.createElement("div");
+                snakeNode.className = "snake";
+                snakeNode.style.left = snakeBody[i].x * 10 + "px";
+                snakeNode.style.top = snakeBody[i].y * 10 + "px";
+                gameBoard.appendChild(snakeNode);
+            }
+        }
+
+        // 绘制食物
+        function drawFood() {
+            var foodNode = document.createElement("div");
+            foodNode.className = "food";
+            foodNode.style.left = food.x * 10 + "px";
+            foodNode.style.top = food.y * 10 + "px";
+            gameBoard.appendChild(foodNode);
+        }
+
+        // 移动蛇
+        function move() {
+            // 根据方向更新蛇头坐标
+            var newHead;
+            switch (direction) {
+                case "up":
+                    newHead = { x: snakeBody[0].x, y: snakeBody[0].y - 1 };
+                    break;
+                case "right":
+                    newHead = { x: snakeBody[0].x + 1, y: snakeBody[0].y };
+                    break;
+                case "down":
+                    newHead = { x: snakeBody[0].x, y: snakeBody[0].y + 1 };
+                    break;
+                case "left":
+                    newHead = { x: snakeBody[0].x - 1, y: snakeBody[0].y };
+                    break;
+            }
+            // 将蛇头添加到snakeBody数组中
+            snakeBody.unshift(newHead);
+            // 判断是否吃到食物
+            if (newHead.x === food.x && newHead.y === food.y) {
+                score++;
+                // 更新分数
+                document.getElementById("score").innerHTML = "当前得分：" + score;
+                // 生成新的食物
+                generateFood();
+            } else {
+                // 移除蛇尾
+                snakeBody.pop();
+            }
+            // 更新蛇的位置
+            for (var i = 0; i < snakeBody.length; i++) {
+                var snakeNode = document.getElementsByClassName("snake")[i];
+                snakeNode.style.left = snakeBody[i].x * 10 + "px";
+                snakeNode.style.top = snakeBody[i].y * 10 + "px";
+            }
+            // 判断是否碰到边界或自己的身体，游戏结束
+            if (newHead.x < 0 || newHead.x >= 30 || newHead.y < 0 || newHead.y >= 30 || checkCollision(snakeBody)) {
+                clearInterval(timer);
+                alert("游戏结束！得分：" + score);
+            }
+        }
+
+        // 开始移动
+        function startMove() {
+            timer = setInterval(function () {
+                move();
+            }, speed);
+        }
+
+        // 生成新的食物
+        function generateFood() {
+            var x = Math.floor(Math.random() * 30);
+            var y = Math.floor(Math.random() * 30);
+            // 如果食物的位置与蛇重合，重新生成
+            while (checkCollision([{ x: x, y: y }])) {
+                x = Math.floor(Math.random() * 30);
+                y = Math.floor(Math.random() * 30);
+            }
+            food = { x: x, y: y };
+            // 移除旧的食物，生成新的食物
+            var oldFood = document.getElementsByClassName("food")[0];
+            gameBoard.removeChild(oldFood);
+            drawFood();
+        }
+
+        // 检测是否与蛇碰撞
+        function checkCollision(snake) {
+            for (var i = 1; i < snake.length; i++) {
+                if (snake[0].x === snake[i].x && snake[0].y === snake[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 改变蛇的移动方向
+        function changeDirection(event) {
+            switch (event.keyCode) {
+                case 37: // left
+                    if (direction !== "right") {
+                        direction = "left";
+                    }
+                    break;
+                case 38: // up
+                    if (direction !== "down") {
+                        direction = "up";
+                    }
+                    break;
+                case 39: // right
+                    if (direction !== "left") {
+                        direction = "right";
+                    }
+                    break;
+                case 40: // down
+                    if (direction !== "up") {
+                        direction = "down";
+                    }
+                    break;
+            }
+        }
+
+        // 开始游戏
+        init();
+    </script>
+    <div id="score">当前得分：0</div>
+</body>
+
+</html>
